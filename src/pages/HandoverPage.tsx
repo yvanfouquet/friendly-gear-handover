@@ -3,8 +3,8 @@ import { MainLayout } from '@/components/Layout/MainLayout';
 import { SignaturePad } from '@/components/Signature/SignaturePad';
 import { equipment as initialEquipment, users, companies } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function HandoverPage() {
   const [selectedCompany, setSelectedCompany] = useState<string>('');
   const [selectedUser, setSelectedUser] = useState<string>('');
-  const [selectedEquipment, setSelectedEquipment] = useState<string>('');
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
   const [signature, setSignature] = useState<string>('');
   const [isComplete, setIsComplete] = useState(false);
@@ -28,11 +28,19 @@ export default function HandoverPage() {
   const filteredUsers = users.filter(u => !selectedCompany || u.companyId === selectedCompany);
   const availableEquipment = initialEquipment.filter(e => e.status === 'available');
 
+  const handleEquipmentToggle = (equipmentId: string) => {
+    setSelectedEquipment(prev => 
+      prev.includes(equipmentId)
+        ? prev.filter(id => id !== equipmentId)
+        : [...prev, equipmentId]
+    );
+  };
+
   const handleSubmit = () => {
-    if (!selectedCompany || !selectedUser || !selectedEquipment || !signature) {
+    if (!selectedCompany || !selectedUser || selectedEquipment.length === 0 || !signature) {
       toast({
         title: 'Erreur',
-        description: 'Veuillez remplir tous les champs et signer',
+        description: 'Veuillez remplir tous les champs, sélectionner au moins un matériel et signer',
         variant: 'destructive',
       });
       return;
@@ -42,20 +50,20 @@ export default function HandoverPage() {
     setIsComplete(true);
     toast({
       title: 'Succès',
-      description: 'Remise de matériel enregistrée',
+      description: `${selectedEquipment.length} matériel(s) remis avec succès`,
     });
   };
 
   const handleReset = () => {
     setSelectedCompany('');
     setSelectedUser('');
-    setSelectedEquipment('');
+    setSelectedEquipment([]);
     setNotes('');
     setSignature('');
     setIsComplete(false);
   };
 
-  const selectedEquipmentData = initialEquipment.find(e => e.id === selectedEquipment);
+  const selectedEquipmentData = initialEquipment.filter(e => selectedEquipment.includes(e.id));
   const selectedUserData = users.find(u => u.id === selectedUser);
   const selectedCompanyData = companies.find(c => c.id === selectedCompany);
 
@@ -70,27 +78,29 @@ export default function HandoverPage() {
               </div>
               <h1 className="text-2xl font-semibold mb-2">Remise enregistrée</h1>
               <p className="text-muted-foreground mb-8">
-                Le matériel a été attribué avec succès
+                {selectedEquipmentData.length} matériel(s) attribué(s) avec succès
               </p>
               
               <div className="bg-muted/30 rounded-xl p-6 mb-8 text-left">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Matériel</p>
-                    <p className="font-medium">{selectedEquipmentData?.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">N° Série</p>
-                    <p className="font-mono">{selectedEquipmentData?.serialNumber}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Attribué à</p>
-                    <p className="font-medium">{selectedUserData?.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Société</p>
-                    <p className="font-medium">{selectedCompanyData?.name}</p>
-                  </div>
+                <div className="mb-4">
+                  <p className="text-sm text-muted-foreground">Attribué à</p>
+                  <p className="font-medium">{selectedUserData?.name}</p>
+                </div>
+                <div className="mb-4">
+                  <p className="text-sm text-muted-foreground">Société</p>
+                  <p className="font-medium">{selectedCompanyData?.name}</p>
+                </div>
+                <div className="mb-4">
+                  <p className="text-sm text-muted-foreground">Matériel(s) remis</p>
+                  <ul className="mt-2 space-y-2">
+                    {selectedEquipmentData.map(item => (
+                      <li key={item.id} className="flex items-center gap-2 text-sm">
+                        <Package className="w-4 h-4 text-primary" />
+                        <span className="font-medium">{item.name}</span>
+                        <span className="text-muted-foreground font-mono">({item.serialNumber})</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
                 {signature && (
                   <div className="mt-6 pt-6 border-t border-border">
@@ -177,25 +187,36 @@ export default function HandoverPage() {
               <CardTitle className="flex items-center gap-2">
                 <Package className="w-5 h-5 text-primary" />
                 Matériel
+                {selectedEquipment.length > 0 && (
+                  <span className="ml-auto text-sm font-normal text-muted-foreground">
+                    {selectedEquipment.length} sélectionné(s)
+                  </span>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Select value={selectedEquipment} onValueChange={setSelectedEquipment}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner le matériel" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover">
-                  {availableEquipment.map((item) => (
-                    <SelectItem key={item.id} value={item.id}>
-                      {item.name} - {item.serialNumber}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {availableEquipment.length === 0 && (
-                <p className="text-sm text-muted-foreground mt-2">
+              {availableEquipment.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
                   Aucun matériel disponible
                 </p>
+              ) : (
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {availableEquipment.map((item) => (
+                    <label
+                      key={item.id}
+                      className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 cursor-pointer transition-colors"
+                    >
+                      <Checkbox
+                        checked={selectedEquipment.includes(item.id)}
+                        onCheckedChange={() => handleEquipmentToggle(item.id)}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{item.name}</p>
+                        <p className="text-sm text-muted-foreground font-mono">{item.serialNumber}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -237,9 +258,9 @@ export default function HandoverPage() {
             onClick={handleSubmit} 
             className="w-full mt-6" 
             size="lg"
-            disabled={!selectedCompany || !selectedUser || !selectedEquipment || !signature}
+            disabled={!selectedCompany || !selectedUser || selectedEquipment.length === 0 || !signature}
           >
-            Valider la remise
+            Valider la remise ({selectedEquipment.length} matériel{selectedEquipment.length > 1 ? 's' : ''})
           </Button>
         </div>
       </div>
