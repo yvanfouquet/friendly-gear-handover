@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { MainLayout } from '@/components/Layout/MainLayout';
 import { EquipmentTable } from '@/components/Equipment/EquipmentTable';
+import { CSVImport } from '@/components/Equipment/CSVImport';
+import { OCRSearch } from '@/components/Equipment/OCRSearch';
 import { equipment as initialEquipment, users, companies, categories } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -78,6 +80,14 @@ export default function EquipmentPage() {
     });
   };
 
+  const handleCSVImport = (imported: Equipment[]) => {
+    setEquipment([...equipment, ...imported]);
+  };
+
+  const handleOCRSearch = (serialNumber: string) => {
+    setSearchQuery(serialNumber);
+  };
+
   return (
     <MainLayout>
       <div className="page-header flex items-center justify-between">
@@ -85,13 +95,16 @@ export default function EquipmentPage() {
           <h1 className="page-title">Matériel</h1>
           <p className="page-subtitle">Gérez votre parc matériel</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Ajouter
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <CSVImport onImport={handleCSVImport} />
+          <OCRSearch onSearch={handleOCRSearch} />
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Ajouter
+              </Button>
+            </DialogTrigger>
           <DialogContent className="bg-card">
             <DialogHeader>
               <DialogTitle>Nouveau matériel</DialogTitle>
@@ -145,7 +158,8 @@ export default function EquipmentPage() {
               </Button>
             </div>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       <div className="bg-card rounded-xl border border-border p-4 mb-6">
