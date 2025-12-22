@@ -9,6 +9,10 @@ import HandoverPage from "./pages/HandoverPage";
 import CompaniesPage from "./pages/CompaniesPage";
 import UsersPage from "./pages/UsersPage";
 import ExportsPage from "./pages/ExportsPage";
+import NewCollaboratorPage from "./pages/NewCollaboratorPage";
+import SupportValidationPage from "./pages/SupportValidationPage";
+import DeparturePage from "./pages/DeparturePage";
+import HandoverSignaturePage from "./pages/HandoverSignaturePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +30,10 @@ const App = () => (
           <Route path="/companies" element={<CompaniesPage />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/exports" element={<ExportsPage />} />
+          <Route path="/nouveaucollaborateur" element={<NewCollaboratorPage />} />
+          <Route path="/support" element={<SupportValidationPage />} />
+          <Route path="/depart" element={<DeparturePage />} />
+          <Route path="/signature" element={<HandoverSignaturePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </TooltipProvider>

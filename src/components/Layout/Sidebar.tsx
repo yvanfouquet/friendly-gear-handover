@@ -13,8 +13,9 @@ const navigation = [
   { name: 'Tableau de bord', href: '/', icon: LayoutDashboard },
   { name: 'Matériel', href: '/equipment', icon: Package },
   { name: 'Remise', href: '/handover', icon: FileSignature },
+  { name: 'Validation Support', href: '/support', icon: Users },
+  { name: 'Gestion Départs', href: '/depart', icon: FileDown },
   { name: 'Sociétés', href: '/companies', icon: Building2 },
-  { name: 'Utilisateurs', href: '/users', icon: Users },
   { name: 'Exports', href: '/exports', icon: FileDown },
 ];
 

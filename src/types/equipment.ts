@@ -16,12 +16,25 @@ export interface Equipment {
   name: string;
   serialNumber: string;
   category: string;
+  type?: string; // PC fixe, portable, tablette, écran, téléphone, etc.
   description?: string;
-  status: 'available' | 'assigned' | 'maintenance';
+  status: 'available' | 'assigned' | 'maintenance' | 'rebut';
   assignedTo?: string;
   assignedDate?: string;
   companyId?: string;
+  collaboratorId?: string;
   signature?: string;
+  purchaseYear?: number;
+  amortizationEndDate?: string;
+  interventions?: Intervention[];
+}
+
+export interface Intervention {
+  id: string;
+  date: string;
+  type: 'maintenance' | 'repair' | 'upgrade';
+  description: string;
+  technician?: string;
 }
 
 export interface Handover {
