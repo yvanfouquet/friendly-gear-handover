@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { MainLayout } from '@/components/Layout/MainLayout';
 import { SignaturePad } from '@/components/Signature/SignaturePad';
+import { EquipmentSearch } from '@/components/Equipment/EquipmentSearch';
 import { equipment as initialEquipment, users, companies } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -13,31 +13,35 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Package, User, Building2 } from 'lucide-react';
+import { CheckCircle2, Package, User, Building2, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Equipment } from '@/types/equipment';
 
 export default function HandoverPage() {
   const [selectedCompany, setSelectedCompany] = useState<string>('');
   const [selectedUser, setSelectedUser] = useState<string>('');
-  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
+  const [selectedEquipmentList, setSelectedEquipmentList] = useState<Equipment[]>([]);
   const [notes, setNotes] = useState('');
   const [signature, setSignature] = useState<string>('');
   const [isComplete, setIsComplete] = useState(false);
+  const [equipment] = useState(initialEquipment);
   const { toast } = useToast();
 
   const filteredUsers = users.filter(u => !selectedCompany || u.companyId === selectedCompany);
-  const availableEquipment = initialEquipment.filter(e => e.status === 'available');
+  const availableEquipment = equipment.filter(e => e.status === 'available');
 
-  const handleEquipmentToggle = (equipmentId: string) => {
-    setSelectedEquipment(prev => 
-      prev.includes(equipmentId)
-        ? prev.filter(id => id !== equipmentId)
-        : [...prev, equipmentId]
-    );
+  const handleAddEquipment = (item: Equipment) => {
+    if (!selectedEquipmentList.find(e => e.id === item.id)) {
+      setSelectedEquipmentList([...selectedEquipmentList, item]);
+    }
+  };
+
+  const handleRemoveEquipment = (itemId: string) => {
+    setSelectedEquipmentList(selectedEquipmentList.filter(e => e.id !== itemId));
   };
 
   const handleSubmit = () => {
-    if (!selectedCompany || !selectedUser || selectedEquipment.length === 0 || !signature) {
+    if (!selectedCompany || !selectedUser || selectedEquipmentList.length === 0 || !signature) {
       toast({
         title: 'Erreur',
         description: 'Veuillez remplir tous les champs, sélectionner au moins un matériel et signer',
@@ -50,20 +54,19 @@ export default function HandoverPage() {
     setIsComplete(true);
     toast({
       title: 'Succès',
-      description: `${selectedEquipment.length} matériel(s) remis avec succès`,
+      description: `${selectedEquipmentList.length} matériel(s) remis avec succès`,
     });
   };
 
   const handleReset = () => {
     setSelectedCompany('');
     setSelectedUser('');
-    setSelectedEquipment([]);
+    setSelectedEquipmentList([]);
     setNotes('');
     setSignature('');
     setIsComplete(false);
   };
 
-  const selectedEquipmentData = initialEquipment.filter(e => selectedEquipment.includes(e.id));
   const selectedUserData = users.find(u => u.id === selectedUser);
   const selectedCompanyData = companies.find(c => c.id === selectedCompany);
 
@@ -78,7 +81,7 @@ export default function HandoverPage() {
               </div>
               <h1 className="text-2xl font-semibold mb-2">Remise enregistrée</h1>
               <p className="text-muted-foreground mb-8">
-                {selectedEquipmentData.length} matériel(s) attribué(s) avec succès
+                {selectedEquipmentList.length} matériel(s) attribué(s) avec succès
               </p>
               
               <div className="bg-muted/30 rounded-xl p-6 mb-8 text-left">
@@ -93,7 +96,7 @@ export default function HandoverPage() {
                 <div className="mb-4">
                   <p className="text-sm text-muted-foreground">Matériel(s) remis</p>
                   <ul className="mt-2 space-y-2">
-                    {selectedEquipmentData.map(item => (
+                    {selectedEquipmentList.map(item => (
                       <li key={item.id} className="flex items-center gap-2 text-sm">
                         <Package className="w-4 h-4 text-primary" />
                         <span className="font-medium">{item.name}</span>
@@ -186,40 +189,52 @@ export default function HandoverPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Package className="w-5 h-5 text-primary" />
-                Matériel
-                {selectedEquipment.length > 0 && (
-                  <span className="ml-auto text-sm font-normal text-muted-foreground">
-                    {selectedEquipment.length} sélectionné(s)
-                  </span>
-                )}
+                Rechercher du matériel
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {availableEquipment.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Aucun matériel disponible
-                </p>
-              ) : (
-                <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {availableEquipment.map((item) => (
-                    <label
+              <EquipmentSearch
+                equipment={availableEquipment}
+                onSelect={handleAddEquipment}
+                selectedIds={selectedEquipmentList.map(e => e.id)}
+              />
+            </CardContent>
+          </Card>
+
+          {selectedEquipmentList.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="w-5 h-5 text-primary" />
+                  Matériel sélectionné
+                  <span className="ml-auto text-sm font-normal text-muted-foreground">
+                    {selectedEquipmentList.length} sélectionné(s)
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {selectedEquipmentList.map((item) => (
+                    <div
                       key={item.id}
-                      className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 cursor-pointer transition-colors"
+                      className="flex items-center justify-between p-3 rounded-lg border border-border"
                     >
-                      <Checkbox
-                        checked={selectedEquipment.includes(item.id)}
-                        onCheckedChange={() => handleEquipmentToggle(item.id)}
-                      />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{item.name}</p>
                         <p className="text-sm text-muted-foreground font-mono">{item.serialNumber}</p>
                       </div>
-                    </label>
+                      <button
+                        onClick={() => handleRemoveEquipment(item.id)}
+                        className="p-1 hover:bg-destructive/10 rounded text-destructive"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
                   ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>
@@ -258,9 +273,9 @@ export default function HandoverPage() {
             onClick={handleSubmit} 
             className="w-full mt-6" 
             size="lg"
-            disabled={!selectedCompany || !selectedUser || selectedEquipment.length === 0 || !signature}
+            disabled={!selectedCompany || !selectedUser || selectedEquipmentList.length === 0 || !signature}
           >
-            Valider la remise ({selectedEquipment.length} matériel{selectedEquipment.length > 1 ? 's' : ''})
+            Valider la remise ({selectedEquipmentList.length} matériel{selectedEquipmentList.length > 1 ? 's' : ''})
           </Button>
         </div>
       </div>
