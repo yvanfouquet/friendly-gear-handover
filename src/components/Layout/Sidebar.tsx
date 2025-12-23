@@ -13,6 +13,7 @@ const navigation = [
   { name: 'Tableau de bord', href: '/', icon: LayoutDashboard },
   { name: 'Matériel', href: '/equipment', icon: Package },
   { name: 'Remise', href: '/handover', icon: FileSignature },
+  { name: 'Collaborateurs équipés', href: '/collaborateurs-equipes', icon: Users },
   { name: 'Validation Support', href: '/support', icon: Users },
   { name: 'Gestion Départs', href: '/depart', icon: FileDown },
   { name: 'Sociétés', href: '/companies', icon: Building2 },

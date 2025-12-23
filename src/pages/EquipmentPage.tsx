@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { MainLayout } from '@/components/Layout/MainLayout';
 import { EquipmentTable } from '@/components/Equipment/EquipmentTable';
+import { EquipmentEditDialog } from '@/components/Equipment/EquipmentEditDialog';
 import { CSVImport } from '@/components/Equipment/CSVImport';
 import { OCRSearch } from '@/components/Equipment/OCRSearch';
 import { equipment as initialEquipment, users, companies, categories } from '@/data/mockData';
+import { collaboratorProfiles } from '@/data/collaboratorData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,6 +33,8 @@ export default function EquipmentPage() {
   const [filterCompany, setFilterCompany] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingEquipment, setEditingEquipment] = useState<Equipment | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [newEquipment, setNewEquipment] = useState({
     name: '',
     serialNumber: '',
@@ -86,6 +90,19 @@ export default function EquipmentPage() {
 
   const handleOCRSearch = (serialNumber: string) => {
     setSearchQuery(serialNumber);
+  };
+
+  const handleEdit = (item: Equipment) => {
+    setEditingEquipment(item);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = (updatedEquipment: Equipment) => {
+    setEquipment(equipment.map(e => e.id === updatedEquipment.id ? updatedEquipment : e));
+    toast({
+      title: 'Modifié',
+      description: `${updatedEquipment.name} a été mis à jour`,
+    });
   };
 
   return (
@@ -205,7 +222,17 @@ export default function EquipmentPage() {
         equipment={filteredEquipment}
         users={users}
         companies={companies}
+        onEdit={handleEdit}
         onDelete={handleDelete}
+      />
+
+      <EquipmentEditDialog
+        equipment={editingEquipment}
+        companies={companies}
+        collaborators={collaboratorProfiles}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSave={handleSaveEdit}
       />
     </MainLayout>
   );
