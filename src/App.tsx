@@ -14,6 +14,7 @@ import SupportValidationPage from "./pages/SupportValidationPage";
 import DeparturePage from "./pages/DeparturePage";
 import HandoverSignaturePage from "./pages/HandoverSignaturePage";
 import CollaboratorEquipmentPage from "./pages/CollaboratorEquipmentPage";
+import MaintenancePage from "./pages/MaintenancePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/equipment" element={<EquipmentPage />} />
+          <Route path="/maintenance" element={<MaintenancePage />} />
           <Route path="/handover" element={<HandoverPage />} />
           <Route path="/collaborateurs-equipes" element={<CollaboratorEquipmentPage />} />
           <Route path="/companies" element={<CompaniesPage />} />
