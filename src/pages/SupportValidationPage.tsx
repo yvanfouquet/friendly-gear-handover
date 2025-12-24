@@ -36,6 +36,146 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   completed: { label: 'Terminé', className: 'badge-success' },
 };
 
+// Detail Dialog Component with checklist and validate button
+const DetailDialog = ({ 
+  request, 
+  onValidate 
+}: { 
+  request: CollaboratorRequest; 
+  onValidate: (request: CollaboratorRequest) => void;
+}) => {
+  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+  const [open, setOpen] = useState(false);
+
+  const handleCheckItem = (key: string) => {
+    setCheckedItems(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleValidateAndClose = () => {
+    onValidate(request);
+    setOpen(false);
+  };
+
+  // Generate equipment items list
+  const equipmentItems = [
+    { key: 'pc', label: `PC ${request.pcType}`, checked: checkedItems['pc'] || false },
+    { key: 'ecrans', label: `${request.ecransSupplementaires} écran(s) supplémentaire(s)`, checked: checkedItems['ecrans'] || false },
+    { key: 'telephone', label: `Téléphone: ${request.telephoneType}`, checked: checkedItems['telephone'] || false },
+  ];
+
+  if (request.autresMateriels) {
+    equipmentItems.push({ key: 'autres', label: request.autresMateriels, checked: checkedItems['autres'] || false });
+  }
+
+  const allChecked = equipmentItems.every(item => checkedItems[item.key]) && 
+                     request.logiciels.every(log => checkedItems[`log-${log.id}`]);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Eye className="w-4 h-4 mr-1" />
+          Détails
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Demande de {request.prenom} {request.nom}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Filiale</p>
+              <p className="font-medium">{request.filiale}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Direction</p>
+              <p className="font-medium">{request.direction}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Poste</p>
+              <p className="font-medium">{request.poste}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Type</p>
+              <p className="font-medium capitalize">{request.type}</p>
+            </div>
+          </div>
+          
+          <div>
+            <p className="text-sm text-muted-foreground mb-2">Groupes mail</p>
+            <div className="flex flex-wrap gap-1">
+              {request.groupesMail.map(g => (
+                <Badge key={g} variant="outline">{g}</Badge>
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <p className="text-sm font-medium mb-3 flex items-center gap-2">
+              <Package className="w-4 h-4 text-primary" />
+              Matériel demandé
+            </p>
+            <div className="space-y-2">
+              {equipmentItems.map(item => (
+                <div 
+                  key={item.key}
+                  className="flex items-center gap-3 p-2 rounded-lg border hover:bg-muted/50 cursor-pointer"
+                  onClick={() => handleCheckItem(item.key)}
+                >
+                  <Checkbox 
+                    checked={checkedItems[item.key] || false}
+                    onCheckedChange={() => handleCheckItem(item.key)}
+                  />
+                  <span>{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <p className="text-sm font-medium mb-3 flex items-center gap-2">
+              <Settings className="w-4 h-4 text-primary" />
+              Logiciels et droits demandés
+            </p>
+            <div className="space-y-2">
+              {request.logiciels.map(log => (
+                <div 
+                  key={log.id}
+                  className="flex items-center gap-3 p-2 rounded-lg border hover:bg-muted/50 cursor-pointer"
+                  onClick={() => handleCheckItem(`log-${log.id}`)}
+                >
+                  <Checkbox 
+                    checked={checkedItems[`log-${log.id}`] || false}
+                    onCheckedChange={() => handleCheckItem(`log-${log.id}`)}
+                  />
+                  <span className="flex-1">{log.name}</span>
+                  <Badge variant="secondary" className="text-xs">{log.rights}</Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {request.status === 'pending' && (
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Fermer
+              </Button>
+              <Button 
+                onClick={handleValidateAndClose}
+                disabled={!allChecked}
+              >
+                <CheckCircle2 className="w-4 h-4 mr-1" />
+                Valider et envoyer en Remise
+              </Button>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export default function SupportValidationPage() {
   const [requests, setRequests] = useState<CollaboratorRequest[]>(collaboratorRequests);
   const [selectedRequest, setSelectedRequest] = useState<CollaboratorRequest | null>(null);
@@ -143,72 +283,7 @@ export default function SupportValidationPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Eye className="w-4 h-4 mr-1" />
-                  Détails
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Demande de {request.prenom} {request.nom}</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Filiale</p>
-                      <p className="font-medium">{request.filiale}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Direction</p>
-                      <p className="font-medium">{request.direction}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Poste</p>
-                      <p className="font-medium">{request.poste}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Type</p>
-                      <p className="font-medium capitalize">{request.type}</p>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">Groupes mail</p>
-                    <div className="flex flex-wrap gap-1">
-                      {request.groupesMail.map(g => (
-                        <Badge key={g} variant="outline">{g}</Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">Matériel demandé</p>
-                    <div className="flex flex-wrap gap-1">
-                      <Badge>PC {request.pcType}</Badge>
-                      <Badge>{request.ecransSupplementaires} écran(s) supplémentaire(s)</Badge>
-                      <Badge>Téléphone: {request.telephoneType}</Badge>
-                    </div>
-                    {request.autresMateriels && (
-                      <p className="text-sm mt-2">{request.autresMateriels}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">Logiciels</p>
-                    <div className="space-y-1">
-                      {request.logiciels.map(log => (
-                        <div key={log.id} className="flex items-center gap-2">
-                          <span>{log.name}</span>
-                          <Badge variant="secondary" className="text-xs">{log.rights}</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <DetailDialog request={request} onValidate={handleValidateRequest} />
 
             {request.status === 'pending' && (
               <Button size="sm" onClick={() => handleValidateRequest(request)}>

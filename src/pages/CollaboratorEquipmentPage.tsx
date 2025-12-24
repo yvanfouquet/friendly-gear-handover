@@ -136,7 +136,7 @@ export default function CollaboratorEquipmentPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-primary" />
-                Filtres
+                Recherche et Filtres
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -158,7 +158,7 @@ export default function CollaboratorEquipmentPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Rechercher un collaborateur</label>
+                <label className="text-sm font-medium mb-2 block">Rechercher par nom / prénom</label>
                 <Popover open={searchOpen} onOpenChange={setSearchOpen}>
                   <PopoverTrigger asChild>
                     <Button
@@ -167,13 +167,13 @@ export default function CollaboratorEquipmentPage() {
                       aria-expanded={searchOpen}
                       className="w-full justify-between"
                     >
-                      {searchValue || "Sélectionner..."}
+                      {searchValue || "Tapez un nom..."}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-[300px] p-0 bg-popover">
                     <Command>
-                      <CommandInput placeholder="Rechercher..." />
+                      <CommandInput placeholder="Rechercher nom ou prénom..." />
                       <CommandList>
                         <CommandEmpty>Aucun collaborateur trouvé.</CommandEmpty>
                         <CommandGroup>
@@ -201,56 +201,10 @@ export default function CollaboratorEquipmentPage() {
                   </PopoverContent>
                 </Popover>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5 text-primary" />
-                Collaborateurs avec matériel
-                <Badge variant="secondary" className="ml-auto">
-                  {collaboratorsWithEquipment.length}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {collaboratorsWithEquipment.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Aucun collaborateur trouvé
-                </p>
-              ) : (
-                <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                  {collaboratorsWithEquipment.map((collab) => {
-                    const collabEquipCount = equipment.filter(
-                      (e) => e.collaboratorId === collab.id
-                    ).length;
-                    return (
-                      <div
-                        key={collab.id}
-                        onClick={() => handleSelectCollaborator(collab)}
-                        className={cn(
-                          "p-3 rounded-lg border cursor-pointer transition-colors",
-                          selectedCollaborator?.id === collab.id
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:bg-muted/50"
-                        )}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{collab.prenom} {collab.nom}</p>
-                            <p className="text-sm text-muted-foreground">{collab.filiale}</p>
-                          </div>
-                          <Badge variant="outline">
-                            <Package className="w-3 h-3 mr-1" />
-                            {collabEquipCount}
-                          </Badge>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              <p className="text-xs text-muted-foreground text-center pt-2">
+                Utilisez la recherche ci-dessus pour trouver un collaborateur
+              </p>
             </CardContent>
           </Card>
         </div>
